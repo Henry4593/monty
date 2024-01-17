@@ -19,8 +19,10 @@ program_context_t program_context = {NULL, NULL, NULL, 0};
 
 int main(int argc, char *argv[])
 {
-	char buffer[1024];
+	char *content;
 	FILE *file;
+	size_t size = 0;
+	ssize_t read_line = 1;
 	stack_t *stack = NULL;
 	unsigned int counter = 0;
 
@@ -29,7 +31,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "USAGE: monty file\n");
 		exit(EXIT_FAILURE);
 	}
-
 	file = fopen(argv[1], "r");
 	program_context.file = file;
 	if (!file)
@@ -37,16 +38,19 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Error: Can't open file %s\n", argv[1]);
 		exit(EXIT_FAILURE);
 	}
-
-	while (fgets(buffer, sizeof(buffer), file) != NULL)
+	while (read_line > 0)
 	{
+		content = NULL;
+		read_line = _getline(&content, &size, file);
+		program_context.content = content;
 		counter++;
-		buffer[strcspn(buffer, "\n")] = '\0';
-		program_context.content = buffer;
-		execute(buffer, &stack, counter, file);
+		if (read_line > 0)
+		{
+			execute(content, &stack, counter, file);
+		}
+		free(content);
 	}
-
 	free_stack(stack);
 	fclose(file);
-	return (0);
+return (0);
 }
